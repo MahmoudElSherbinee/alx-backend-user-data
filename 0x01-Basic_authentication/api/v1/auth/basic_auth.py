@@ -45,38 +45,39 @@ class BasicAuth(Auth):
 
     def extract_user_credentials(
             self, decoded_base64_authorization_header: str) -> (str, str):
-        """Extracts user credentials from a base64-decoded authorization
-        header that uses the Basic authentication method.
+        """ User credential
         """
-        if decoded_base64_authorization_header is None or not isinstance(
-                decoded_base64_authorization_header, str):
+        if decoded_base64_authorization_header is None:
             return None, None
-
+        if not isinstance(decoded_base64_authorization_header, str):
+            return None, None
         if ":" not in decoded_base64_authorization_header:
             return None, None
+        else:
+            decode = decoded_base64_authorization_header.split(':')
+            return tuple(decode)
 
-        email, password = decoded_base64_authorization_header.split(":")
-        return email, password
-
-    # def user_object_from_credentials(
-    #         self,
-    #         user_email: str,
-    #         user_pwd: str) -> TypeVar('User'):
-    #     """Retrieves a user based on the user's authentication credentials.
-    #     """
-    #     if user_email is None or not isinstance(user_email, str):
-    #         return None
-    #     if user_pwd is None or not isinstance(user_pwd, str):
-    #         return None
-
-    #     user = User.search(user_email)
-    #     if not user:
-    #         return None
-
-    #     if not user.is_valid_password(user_pwd):
-    #         return None
-
-    #     return user
+    def user_object_from_credentials(
+            self, user_email: str, user_pwd: str) -> TypeVar('User'):
+        """ User credential object """
+        if user_email is None or user_pwd is None:
+            return None
+        if not isinstance(user_email, str):
+            return None
+        if not isinstance(user_pwd, str):
+            return None
+        try:
+            from models.user import User
+            searched = User.search({'email': user_email})
+            if not searched or searched == []:
+                return None
+            for user in searched:
+                if user.is_valid_password(user_pwd):
+                    return user
+                else:
+                    return None
+        except Exception:
+            return None
 
     def user_object_from_credentials(self, user_email: str,
                                      user_pwd: str) -> TypeVar('User'):
