@@ -1,42 +1,38 @@
 #!/usr/bin/env python3
+"""Authentication module for the API.
 """
-Authentication file
-"""
-
-
-from flask import request
+import re
 from typing import List, TypeVar
+from flask import request
 
 
-class Auth():
-    """ Authentication call declaration
+class Auth:
+    """Authentication class.
     """
-
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """ A public method of class Auth
+        """Checks if a path requires authentication.
         """
-        if path is None:
-            return True
-        if excluded_paths is None or excluded_paths is [""]:
-            return True
-        if path in excluded_paths or path + "/" in excluded_paths:
-            return False
-        else:
-            return True
+        if path is not None and excluded_paths is not None:
+            for exclusion_path in map(lambda x: x.strip(), excluded_paths):
+                pattern = ''
+                if exclusion_path[-1] == '*':
+                    pattern = '{}.*'.format(exclusion_path[0:-1])
+                elif exclusion_path[-1] == '/':
+                    pattern = '{}/*'.format(exclusion_path[0:-1])
+                else:
+                    pattern = '{}/*'.format(exclusion_path)
+                if re.match(pattern, path):
+                    return False
+        return True
 
     def authorization_header(self, request=None) -> str:
-        """ Another public method to check authorization
-            header
+        """Gets the authorization header field from the request.
         """
-        if request is None:
-            return None
-        if 'Authorization' in request.headers:
-            headerr = request.headers['Authorization']
-            return headerr
-        else:
-            return None
+        if request is not None:
+            return request.headers.get('Authorization', None)
+        return None
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """ Current User request method
+        """Gets the current user from the request.
         """
         return None
